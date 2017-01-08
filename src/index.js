@@ -48,35 +48,35 @@ AlexaGoogleSearch.prototype.intentHandlers = {
 		// https://github.com/TheAdrianProject/AdrianSmartAssistant/blob/master/Modules/Google/Google.js        
 
 		//parse queries
-        
-        // create userAgent string from a number of selections
-        
-        var userAgent = [
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36',
-            'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36',
-            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_1) AppleWebKit/602.2.14 (KHTML, like Gecko) Version/10.0.1 Safari/602.2.14',
-            'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:50.0) Gecko/20100101 Firefox/50.0',
-            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.95 Safari/537.36'
-            ];
-        
-        var sel = Math.floor((Math.random() * 5) );
+		
+		// create userAgent string from a number of selections
+		
+		var userAgent = [
+			'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36',
+			'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36',
+			'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_1) AppleWebKit/602.2.14 (KHTML, like Gecko) Version/10.0.1 Safari/602.2.14',
+			'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:50.0) Gecko/20100101 Firefox/50.0',
+			'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.95 Safari/537.36'
+		];
+
+		var sel = Math.floor((Math.random() * 5) );
 		var userAgentRandom = userAgent[sel];
-        
-        console.log("User Agent: - " + userAgentRandom);
-        
+
+		console.log("User Agent: - " + userAgentRandom);
+
 		// Create search sring
 		var queryString = "http://www.google.com/search?q=" + query + '&oe=utf8';
-        
-        var options = {
-            uri: queryString,
-            'User-Agent': userAgentRandom
-        }
+
+		var options = {
+			uri: queryString,
+			'User-Agent': userAgentRandom
+		}
 		
-		rp(options)
-			.then(function(body) {
-				console.log("Running parsing");
-				console.log("Search string is:" + queryString);
-				console.log("HTML is:" + $("#ires",body).html());
+		rp(options).then(function(body) {
+			
+			console.log("Running parsing");
+			console.log("Search string is:" + queryString);
+			console.log("HTML is:" + $("#ires",body).html());
 								
 			// result variable init
 			var found = 0;
@@ -95,14 +95,13 @@ AlexaGoogleSearch.prototype.intentHandlers = {
 					console.log( items + " how many 2 answer found");
 					found = $('._eGc',body).html() + ", ";
 
-
 					for (var count = 0; count < items; count++) {	
 						found = found + $('._m3b',body).eq(count).html() + ", ";
 					}
 				}
-            }
+			}
 
-                        			//name list
+			//name list
 			if (!found && $('#_vBb',body).length>0){
 
 				found = $('#_vBb',body).html();
@@ -138,35 +137,33 @@ AlexaGoogleSearch.prototype.intentHandlers = {
 			}
 			//instant + description 2
 			if (!found && $('._o0d',body).length>0){
-                
-                console.log("Found Found instant and desc 2")
-				var tablehtml = $('._o0d',body).html()
-                
-                found = tablehtml // fallback in case a table isn't found
-                
-                xray(tablehtml, ['table@html'])(function (conversionError, tableHtmlList) {
-                if (conversionError) {
-                  console.log("Xray conversionError");
-                }
-                if (tableHtmlList){
-                  // xray returns the html inside each table tag, and tabletojson
-                  // expects a valid html table, so we need to re-wrap the table.
-                  var table1 = tabletojson.convert('<table>' + tableHtmlList[0]+ '</table>');
-                   console.log(table1)
-                    
-                   var csv = json2csv({data: table1, hasCSVColumnTitle: false })
-                   
-                   csv = csv.replace(/(['"])/g, "") //get rid of double quotes
-                       csv = csv.replace(/\,(.*?)\:/g, ", ") //get rid column names
-                       csv = csv.replace(/\{(.*?)\:/g, ", ") //get rid column names
-                       csv = csv.replace(/([}])/g, " ALEXAPAUSE ") //get rid of } and add a pause which will be replaced with SSML later
-                               
-                    found = csv.toString();
-                    
-                }
- 
-                
-              });
+
+				console.log("Found Found instant and desc 2");
+				var tablehtml = $('._o0d',body).html();
+
+				found = tablehtml; // fallback in case a table isn't found
+
+				xray(tablehtml, ['table@html'])(function (conversionError, tableHtmlList) {
+					if (conversionError) {
+						console.log("Xray conversionError");
+					}
+					if (tableHtmlList){
+						// xray returns the html inside each table tag, and tabletojson
+						// expects a valid html table, so we need to re-wrap the table.
+						var table1 = tabletojson.convert('<table>' + tableHtmlList[0]+ '</table>');
+						console.log(table1);
+
+						var csv = json2csv({data: table1, hasCSVColumnTitle: false });
+
+						csv = csv.replace(/(['"])/g, ""); //get rid of double quotes
+						csv = csv.replace(/\,(.*?)\:/g, ", "); //get rid column names
+						csv = csv.replace(/\{(.*?)\:/g, ", "); //get rid column names
+						csv = csv.replace(/([}])/g, " ALEXAPAUSE "); //get rid of } and add a pause which will be replaced with SSML later
+
+						found = csv.toString();
+					}
+
+				});
 			}
 
 			//Time, Date
@@ -215,7 +212,6 @@ AlexaGoogleSearch.prototype.intentHandlers = {
 				}
 				//how many
 				if ( $('._tXc',body).length>0){
-
 					found+= ". "+$('._tXc',body).html();
 				}
 			}
@@ -246,56 +242,54 @@ AlexaGoogleSearch.prototype.intentHandlers = {
 			var cardOutputText = speechOutputTemp;
 			// make sure all full stops have space after them otherwise alexa says the word dot 
 
-			speechOutputTemp = speechOutputTemp.split('.com').join(" dot com ") // deal with dot com
-			speechOutputTemp = speechOutputTemp.split('.co.uk').join(" dot co dot uk ") // deal with .co.uk
-      speechOutputTemp = speechOutputTemp.split('.net').join(" dot net ") // deal with .net
-      speechOutputTemp = speechOutputTemp.split('.org').join(" dot org ") // deal with .org
-      speechOutputTemp = speechOutputTemp.split('a.m').join("am") // deal with a.m
-      speechOutputTemp = speechOutputTemp.split('p.m').join("pm") // deal with a.m
-      
-            
-      // deal with decimal places
-      speechOutputTemp = speechOutputTemp.replace(/\d[\.]{1,}/g,'\$&DECIMALPOINT')// search for decimal points following a digit and add DECIMALPOINT TEXT
-      speechOutputTemp = speechOutputTemp.replace(/.DECIMALPOINT/g,'DECIMALPOINT')// remove decimal point
-      
-      // deal with characters that are illegal in SSML
-      
-      speechOutputTemp = speechOutputTemp.replace(/&/g,' and ') // replace ampersands 
-      speechOutputTemp = speechOutputTemp.replace(/</g,' less than ') // replace < symbol 
-      speechOutputTemp = speechOutputTemp.replace(/""/g,'') // replace double quotes 
-                                        
-            
-      speechOutputTemp = speechOutputTemp.split('ALEXAPAUSE').join('<break time=\"500ms\"/>') // add in SSML pauses at table ends 
-      cardOutputText = cardOutputText.split('ALEXAPAUSE').join('') // remove pauses from card text
-			speechOutputTemp = speechOutputTemp.split('.').join(". <break time=\"250ms\"/>") // Assume any remaining dot are concatonated sentances so turn them into full stops with a pause afterwards
-			var speechOutput = speechOutputTemp.replace(/DECIMALPOINT/g,'.') // Put back decimal points
-            
+			speechOutputTemp = speechOutputTemp.split('.com').join(" dot com "); // deal with dot com
+			speechOutputTemp = speechOutputTemp.split('.co.uk').join(" dot co dot uk "); // deal with .co.uk
+			speechOutputTemp = speechOutputTemp.split('.net').join(" dot net "); // deal with .net
+			speechOutputTemp = speechOutputTemp.split('.org').join(" dot org "); // deal with .org
+			speechOutputTemp = speechOutputTemp.split('a.m').join("am"); // deal with a.m
+			speechOutputTemp = speechOutputTemp.split('p.m').join("pm"); // deal with a.m
+
+
+			// deal with decimal places
+			speechOutputTemp = speechOutputTemp.replace(/\d[\.]{1,}/g,'\$&DECIMALPOINT'); // search for decimal points following a digit and add DECIMALPOINT TEXT
+			speechOutputTemp = speechOutputTemp.replace(/.DECIMALPOINT/g,'DECIMALPOINT'); // remove decimal point
+
+			// deal with characters that are illegal in SSML
+
+			speechOutputTemp = speechOutputTemp.replace(/&/g,' and '); // replace ampersands 
+			speechOutputTemp = speechOutputTemp.replace(/</g,' less than '); // replace < symbol 
+			speechOutputTemp = speechOutputTemp.replace(/""/g,''); // replace double quotes 
+
+
+			speechOutputTemp = speechOutputTemp.split('ALEXAPAUSE').join('<break time=\"500ms\"/>'); // add in SSML pauses at table ends 
+			cardOutputText = cardOutputText.split('ALEXAPAUSE').join(''); // remove pauses from card text
+			speechOutputTemp = speechOutputTemp.split('.').join(". <break time=\"250ms\"/>"); // Assume any remaining dot are concatonated sentances so turn them into full stops with a pause afterwards
+			var speechOutput = speechOutputTemp.replace(/DECIMALPOINT/g,'.'); // Put back decimal points
+
 						
-			if (speechOutput=="") speechOutput = "I'm sorry, I wasn't able to find an answer."
-            
-            // Covert speechOutput into SSML so that pauses can be processed
-            var SSMLspeechOutput = {
-                speech: '<speak>' + speechOutput + '</speak>',
-                type: 'SSML'
-            };
+			if (speechOutput=="") speechOutput = "I'm sorry, I wasn't able to find an answer.";
 
-            
+			// Covert speechOutput into SSML so that pauses can be processed
+			var SSMLspeechOutput = {
+				speech: '<speak>' + speechOutput + '</speak>',
+				type: 'SSML'
+			};
+
+
 			response.tellWithCard(SSMLspeechOutput, cardTitle, cardOutputText);
-            
-            
 
-            //    response.tell(speechOutput)
-            }).catch(function(err) {
-            console.log("ERROR" + err);
-            speechOutput = "There was an error processing your search.";
-            response.tell(speechOutput);
-        })
-    },
+			//    response.tell(speechOutput)
+		}).catch(function(err) {
+			console.log("ERROR" + err);
+			speechOutput = "There was an error processing your search.";
+			response.tell(speechOutput);
+		})
+	},
 
-    "AMAZON.StopIntent": function(intent, session, response) {
-        var speechOutput = "";
-        response.tell(speechOutput);
-    }
+	"AMAZON.StopIntent": function(intent, session, response) {
+		var speechOutput = "";
+		response.tell(speechOutput);
+	}
 }
 
 exports.handler = function(event, context) {
